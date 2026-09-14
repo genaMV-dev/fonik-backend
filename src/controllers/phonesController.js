@@ -1,0 +1,110 @@
+import { Phone } from '../models/phone.js';
+import { User } from '../models/user.js';
+import createHttpError from 'http-errors';
+
+export const getAllPhones = async (req, res) => {
+  const { page = 1, perPage = 10 } = req.query;
+  const skip = (page - 1) * perPage;
+
+  const [totalPhones, phones] = await Promise.all([
+    Phone.countDocuments(),
+    Phone.find().skip(skip).limit(Number(perPage)),
+  ]);
+
+  const totalPages = Math.ceil(totalPhones / perPage);
+
+  return res.status(200).json({
+    page: Number(page),
+    perPage: Number(perPage),
+    totalPhones,
+    totalPages,
+    phones,
+  });
+};
+
+export const getPhoneById = async (req, res) => {
+  const { phoneId } = req.params;
+  const phone = await Phone.findById(phoneId);
+
+  if (!phone) {
+    throw createHttpError(404, 'Phone not found');
+  }
+
+  res.status(200).json(phone);
+};
+
+export const deletePhoneById = async (req, res) => {
+  const { phoneId } = req.params;
+  const userId = req.user._id;
+
+  const phone = await Phone.findById(phoneId);
+
+  if (!phone) {
+    throw createHttpError(404, 'Phone not found');
+  }
+
+  if (phone.userId.toString() !== userId.toString()) {
+    throw createHttpError(403, 'No rights to delete this phone listing');
+  }
+
+  await Phone.findByIdAndDelete(phoneId);
+
+  res.status(200).json({
+    message: 'Phone listing deleted successfully',
+  });
+};
+
+export const createPhone = async (req, res) => {
+  const phone = await Phone.create({
+    ...req.body,
+    userId: req.user._id,
+  });
+
+  res.status(201).json(phone);
+};
+
+export const updatePhone = async (req, res) => {
+  const { phoneId } = req.params;
+
+  const updatedPhone = await Phone.findOneAndUpdate(
+    { _id: phoneId, userId: req.user._id }, // Оновлюємо тільки якщо оголошення належить користувачу
+    req.body,
+    { new: true, runValidators: true }
+  );
+
+  if (!updatedPhone) {
+    throw createHttpError(404, 'Phone not found or unauthorized');
+  }
+
+  res.status(200).json(updatedPhone);
+};
+
+export const addToBasket = async (req, res) => {
+  const { phoneId } = req.params;
+  const userId = req.user._id;
+
+  await User.findByIdAndUpdate(userId, {
+    $addToSet: {
+      phonesInBasket: phoneId,
+    },
+  });
+
+  res.status(200).json({
+    message: 'Phone added to basket',
+  });
+};
+
+export const removeFromBasket = async (req, res) => {
+  const { phoneId } = req.params;
+  const userId = req.user._id;
+
+  await User.findByIdAndUpdate(userId, {
+    $pull: {
+      phonesInBasket: phoneId,
+    },
+  });
+
+  res.status(200).json({
+    message: 'Phone removed from basket',
+  });
+};
