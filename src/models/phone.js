@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { BUTTERY, CONDITIONS, INUSE, STORAGE } from '../constants/phoneConst.js';
+import { BATTERY, CONDITIONS, INUSE, STORAGE } from '../constants/phoneConst.js';
 
 const phoneSchema = new Schema(
   {
@@ -26,9 +26,9 @@ const phoneSchema = new Schema(
       enum: STORAGE,
       required: true,
     },
-    buttery: {
+    battery: {
       type: String,
-      enum: BUTTERY,
+      enum: BATTERY,
       required: true,
     },
     inUse: {
