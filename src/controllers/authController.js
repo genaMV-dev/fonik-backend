@@ -48,7 +48,15 @@ export const loginUser = async (req, res) => {
   const newSession = await createSession(user._id);
   setSessionCookies(res, newSession);
 
-  res.status(200).json(user);
+  
+  const userData = user.toObject();
+
+  res.status(200).json({
+    ...userData,
+    accessToken: newSession.accessToken,
+    refreshToken: newSession.refreshToken,
+    sessionId: newSession._id,
+  });
 };
 
 export const logoutUser = async (req, res) => {
