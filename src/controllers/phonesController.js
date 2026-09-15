@@ -6,9 +6,35 @@ export const getAllPhones = async (req, res) => {
   const { page = 1, perPage = 10 } = req.query;
   const skip = (page - 1) * perPage;
 
+  const currentUserId = req.user?._id;
+
+  const filter = currentUserId ? { userId: { $ne: currentUserId } } : {};
+
   const [totalPhones, phones] = await Promise.all([
-    Phone.countDocuments(),
-    Phone.find().skip(skip).limit(Number(perPage)),
+    Phone.countDocuments(filter),
+    Phone.find(filter).skip(skip).limit(Number(perPage)),
+  ]);
+
+  const totalPages = Math.ceil(totalPhones / perPage);
+
+  return res.status(200).json({
+    page: Number(page),
+    perPage: Number(perPage),
+    totalPhones,
+    totalPages,
+    phones,
+  });
+};
+
+export const getMyPhones = async (req, res) => {
+  const { page = 1, perPage = 10 } = req.query;
+  const userId = req.user._id;
+
+  const skip = (page - 1) * perPage;
+
+  const [totalPhones, phones] = await Promise.all([
+    Phone.countDocuments({ userId }),
+    Phone.find({ userId }).skip(skip).limit(Number(perPage)),
   ]);
 
   const totalPages = Math.ceil(totalPhones / perPage);
