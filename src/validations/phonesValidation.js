@@ -5,7 +5,7 @@ import { BATTERY, CONDITIONS, INUSE, STORAGE } from '../constants/phoneConst.js'
 export const getAllPhonesSchema = {
   [Segments.QUERY]: Joi.object({
     page: Joi.number().integer().min(1).default(1),
-    perPage: Joi.number().integer().min(5).max(20).default(12),
+    perPage: Joi.number().integer().min(1).max(50).default(12),
   }),
 };
 
