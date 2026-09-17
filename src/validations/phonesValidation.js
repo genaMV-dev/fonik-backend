@@ -1,6 +1,6 @@
 import { Joi, Segments } from 'celebrate';
 import { isValidObjectId } from 'mongoose';
-import { BUTTERY, CONDITIONS, INUSE, STORAGE } from '../constants/phoneConst.js';
+import { BATTERY, CONDITIONS, INUSE, STORAGE } from '../constants/phoneConst.js';
 
 export const getAllPhonesSchema = {
   [Segments.QUERY]: Joi.object({
@@ -17,7 +17,7 @@ export const createPhoneSchema = {
     photo: Joi.string().required(),
     author: Joi.string().min(2).max(50).required(),
     storage: Joi.number().valid(...STORAGE),
-    buttery: Joi.string().valid(...BUTTERY),
+    battery: Joi.string().valid(...BATTERY),
     inUse: Joi.string().valid(...INUSE),
     conditions: Joi.string().valid(...CONDITIONS),
   }),
@@ -30,7 +30,7 @@ export const updatePhoneSchema = {
     photo: Joi.string(),
     author: Joi.string().min(2).max(50),
     storage: Joi.number().valid(...STORAGE),
-    buttery: Joi.string().valid(...BUTTERY),
+    battery: Joi.string().valid(...BATTERY),
     inUse: Joi.string().valid(...INUSE),
     conditions: Joi.string().valid(...CONDITIONS),
   }),
