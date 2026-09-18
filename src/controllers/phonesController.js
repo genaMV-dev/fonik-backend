@@ -27,21 +27,24 @@ export const getAllPhones = async (req, res) => {
 };
 
 export const getMyPhones = async (req, res) => {
-  const { page = 1, perPage = 10 } = req.query;
-  const userId = req.user._id;
+  // 1. Приводимо значення з req.query до чисел
+  const pageNumber = Number(req.query.page) || 1;
+  const limitNumber = Number(req.query.perPage) || 10;
 
-  const skip = (page - 1) * perPage;
+  // 2. Розраховуємо skip з числовими значеннями
+  const skip = (pageNumber - 1) * limitNumber;
+  const userId = req.user._id;
 
   const [totalPhones, phones] = await Promise.all([
     Phone.countDocuments({ userId }),
-    Phone.find({ userId }).skip(skip).limit(Number(perPage)),
+    Phone.find({ userId }).skip(skip).limit(limitNumber),
   ]);
 
-  const totalPages = Math.ceil(totalPhones / perPage);
+  const totalPages = Math.ceil(totalPhones / limitNumber);
 
   return res.status(200).json({
-    page: Number(page),
-    perPage: Number(perPage),
+    page: pageNumber,
+    perPage: limitNumber,
     totalPhones,
     totalPages,
     phones,
