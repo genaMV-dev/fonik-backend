@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
-import { authenticate } from '../middleware/authenticate.js'; // або optionalAuthenticate
+import { authenticate } from '../middleware/authenticate.js'; 
 import { upload } from '../middleware/multer.js';
 import { savePhonePhotoToCloudinary } from '../utils/saveFileToCloudinary.js'; 
 import {
@@ -22,6 +22,13 @@ import {
 
 const router = Router();
 
+
+const optionalAuthenticate = (req, res, next) => {
+  authenticate(req, res, (err) => {
+    next();
+  });
+};
+
 const attachPhonePhotoUrl = async (req, res, next) => {
   try {
     if (req.file) {
@@ -37,17 +44,18 @@ const attachPhonePhotoUrl = async (req, res, next) => {
   }
 };
 
-// 1. Отримання ТІЛЬКИ МОЇХ оголошень (потрібна обов'язкова авторизація)
-router.get('/phones/my', authenticate, celebrate(getAllPhonesSchema), getMyPhones);
+// 1. Отримання ТІЛЬКИ МОЇХ оголошень (статичний шлях "/my" повинен іти РАНІШЕ за "/:phoneId")
+router.get('/my', authenticate, celebrate(getAllPhonesSchema), getMyPhones);
 
-// 2. Отримання чужих оголошень (якщо користувач залогінений, перевіряємо req.user)
-router.get('/phones', authenticate, celebrate(getAllPhonesSchema), getAllPhones); 
+// 2. Отримання оголошень інших користувачів (працює і для гостей, і для авторизованих)
+router.get('/', optionalAuthenticate, celebrate(getAllPhonesSchema), getAllPhones); 
 
-router.get('/phones/:phoneId', celebrate(phoneIdSchema), getPhoneById);
+// 3. Отримання одного оголошення за ID
+router.get('/:phoneId', celebrate(phoneIdSchema), getPhoneById);
 
 // Створення, оновлення та видалення оголошення
 router.post(
-  '/phones',
+  '/',
   authenticate,
   upload.single('photo'),
   attachPhonePhotoUrl,
@@ -56,32 +64,32 @@ router.post(
 );
 
 router.patch(
-  '/phones/:phoneId',
-  celebrate(phoneIdSchema),
+  '/:phoneId',
   authenticate,
   upload.single('photo'),
-  attachPhotoUrl,
+  attachPhonePhotoUrl, 
+  celebrate(phoneIdSchema),
   celebrate(updatePhoneSchema),
   updatePhone,
 );
 
 router.delete(
-  '/phones/:phoneId',
-  celebrate(phoneIdSchema),
+  '/:phoneId',
   authenticate,
+  celebrate(phoneIdSchema),
   deletePhoneById,
 );
 
-// Роути для кошика (додавання / видалення)
+// Роути для кошика
 router.post(
-  '/phones/:phoneId/basket',
+  '/:phoneId/basket',
   authenticate,
   celebrate(phoneIdSchema),
   addToBasket,
 );
 
 router.delete(
-  '/phones/:phoneId/basket',
+  '/:phoneId/basket',
   authenticate,
   celebrate(phoneIdSchema),
   removeFromBasket,
