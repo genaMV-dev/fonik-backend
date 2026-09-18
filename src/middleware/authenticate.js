@@ -34,3 +34,17 @@ export const authenticate = async (req, res, next) => {
 
   next();
 };
+
+export const optionalAuthenticate = async (req, res, next) => {
+  const { sessionId, accessToken } = req.cookies;
+
+  if (!sessionId || !accessToken) {
+    return next();
+  }
+
+  try {
+    await authenticate(req, res, next);
+  } catch {
+    next();
+  }
+};

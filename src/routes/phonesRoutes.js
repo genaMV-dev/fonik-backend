@@ -1,40 +1,33 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
-import { authenticate } from '../middleware/authenticate.js'; 
+import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js';
 import { upload } from '../middleware/multer.js';
-import { savePhonePhotoToCloudinary } from '../utils/saveFileToCloudinary.js'; 
+import { savePhonePhotoToCloudinary } from '../utils/saveFileToCloudinary.js';
 import {
   createPhone,
   getAllPhones,
-  getMyPhones, 
+  getMyPhones,
   getPhoneById,
   deletePhoneById,
   updatePhone,
   addToBasket,
   removeFromBasket,
-} from '../controllers/phonesController.js'; 
+} from '../controllers/phonesController.js';
 import {
   phoneIdSchema,
   createPhoneSchema,
   getAllPhonesSchema,
   updatePhoneSchema,
-} from '../validations/phonesValidation.js'; 
+} from '../validations/phonesValidation.js';
 
 const router = Router();
-
-
-const optionalAuthenticate = (req, res, next) => {
-  authenticate(req, res, (err) => {
-    next();
-  });
-};
 
 const attachPhonePhotoUrl = async (req, res, next) => {
   try {
     if (req.file) {
       const result = await savePhonePhotoToCloudinary(
         req.file.buffer,
-        `${Date.now()}_${req.user._id}`,
+        `${Date.now()}_${req.user._id}`
       );
       req.body.photo = result.secure_url;
     }
@@ -48,7 +41,7 @@ const attachPhonePhotoUrl = async (req, res, next) => {
 router.get('/my', authenticate, celebrate(getAllPhonesSchema), getMyPhones);
 
 // 2. Отримання оголошень інших користувачів (працює і для гостей, і для авторизованих)
-router.get('/', optionalAuthenticate, celebrate(getAllPhonesSchema), getAllPhones); 
+router.get('/', optionalAuthenticate, celebrate(getAllPhonesSchema), getAllPhones);
 
 // 3. Отримання одного оголошення за ID
 router.get('/:phoneId', celebrate(phoneIdSchema), getPhoneById);
@@ -60,39 +53,29 @@ router.post(
   upload.single('photo'),
   attachPhonePhotoUrl,
   celebrate(createPhoneSchema),
-  createPhone,
+  createPhone
 );
 
 router.patch(
   '/:phoneId',
   authenticate,
   upload.single('photo'),
-  attachPhonePhotoUrl, 
+  attachPhonePhotoUrl,
   celebrate(phoneIdSchema),
   celebrate(updatePhoneSchema),
-  updatePhone,
+  updatePhone
 );
 
-router.delete(
-  '/:phoneId',
-  authenticate,
-  celebrate(phoneIdSchema),
-  deletePhoneById,
-);
+router.delete('/:phoneId', authenticate, celebrate(phoneIdSchema), deletePhoneById);
 
 // Роути для кошика
-router.post(
-  '/:phoneId/basket',
-  authenticate,
-  celebrate(phoneIdSchema),
-  addToBasket,
-);
+router.post('/:phoneId/basket', authenticate, celebrate(phoneIdSchema), addToBasket);
 
 router.delete(
   '/:phoneId/basket',
   authenticate,
   celebrate(phoneIdSchema),
-  removeFromBasket,
+  removeFromBasket
 );
 
 export default router;
