@@ -1,33 +1,39 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
-import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js';
+import { authenticate } from '../middleware/authenticate.js'; 
 import { upload } from '../middleware/multer.js';
-import { savePhonePhotoToCloudinary } from '../utils/saveFileToCloudinary.js';
+import { savePhonePhotoToCloudinary } from '../utils/saveFileToCloudinary.js'; 
 import {
   createPhone,
   getAllPhones,
-  getMyPhones,
+  getMyPhones, 
   getPhoneById,
   deletePhoneById,
   updatePhone,
   addToBasket,
   removeFromBasket,
-} from '../controllers/phonesController.js';
+} from '../controllers/phonesController.js'; 
 import {
   phoneIdSchema,
   createPhoneSchema,
   getAllPhonesSchema,
   updatePhoneSchema,
-} from '../validations/phonesValidation.js';
+} from '../validations/phonesValidation.js'; 
 
 const router = Router();
+
+const optionalAuthenticate = (req, res, next) => {
+  authenticate(req, res, (err) => {
+    next();
+  });
+};
 
 const attachPhonePhotoUrl = async (req, res, next) => {
   try {
     if (req.file) {
       const result = await savePhonePhotoToCloudinary(
         req.file.buffer,
-        `${Date.now()}_${req.user._id}`
+        `${Date.now()}_${req.user._id}`,
       );
       req.body.photo = result.secure_url;
     }
@@ -37,45 +43,55 @@ const attachPhonePhotoUrl = async (req, res, next) => {
   }
 };
 
-// 1. Отримання ТІЛЬКИ МОЇХ оголошень (статичний шлях "/my" повинен іти РАНІШЕ за "/:phoneId")
-router.get('/my', authenticate, celebrate(getAllPhonesSchema), getMyPhones);
+// 1. Отримання ТІЛЬКИ МОЇХ оголошень (обов'язково ВИЩЕ за /phones/:phoneId)
+router.get('/phones/my', authenticate, celebrate(getAllPhonesSchema), getMyPhones);
 
-// 2. Отримання оголошень інших користувачів (працює і для гостей, і для авторизованих)
-router.get('/', optionalAuthenticate, celebrate(getAllPhonesSchema), getAllPhones);
+// 2. Отримання публічного каталогу без оголошень поточного юзера
+router.get('/phones', optionalAuthenticate, celebrate(getAllPhonesSchema), getAllPhones); 
 
 // 3. Отримання одного оголошення за ID
-router.get('/:phoneId', celebrate(phoneIdSchema), getPhoneById);
+router.get('/phones/:phoneId', celebrate(phoneIdSchema), getPhoneById);
 
 // Створення, оновлення та видалення оголошення
 router.post(
-  '/',
+  '/phones',
   authenticate,
   upload.single('photo'),
   attachPhonePhotoUrl,
   celebrate(createPhoneSchema),
-  createPhone
+  createPhone,
 );
 
 router.patch(
-  '/:phoneId',
+  '/phones/:phoneId',
   authenticate,
   upload.single('photo'),
   attachPhonePhotoUrl,
   celebrate(phoneIdSchema),
   celebrate(updatePhoneSchema),
-  updatePhone
+  updatePhone,
 );
 
-router.delete('/:phoneId', authenticate, celebrate(phoneIdSchema), deletePhoneById);
-
-// Роути для кошика
-router.post('/:phoneId/basket', authenticate, celebrate(phoneIdSchema), addToBasket);
-
 router.delete(
-  '/:phoneId/basket',
+  '/phones/:phoneId',
   authenticate,
   celebrate(phoneIdSchema),
-  removeFromBasket
+  deletePhoneById,
+);
+
+// Роути кошика
+router.post(
+  '/phones/:phoneId/basket',
+  authenticate,
+  celebrate(phoneIdSchema),
+  addToBasket,
+);
+
+router.delete(
+  '/phones/:phoneId/basket',
+  authenticate,
+  celebrate(phoneIdSchema),
+  removeFromBasket,
 );
 
 export default router;
