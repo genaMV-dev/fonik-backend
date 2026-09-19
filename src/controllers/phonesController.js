@@ -108,6 +108,21 @@ export const updatePhone = async (req, res) => {
   res.status(200).json(updatedPhone);
 };
 
+export const getBasket = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId).populate('phonesInBasket');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user.phonesInBasket);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch basket items', error: error.message });
+  }
+};
+
 export const addToBasket = async (req, res) => {
   const { phoneId } = req.params;
   const userId = req.user._id;

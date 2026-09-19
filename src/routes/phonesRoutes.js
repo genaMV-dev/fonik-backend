@@ -12,6 +12,7 @@ import {
   updatePhone,
   addToBasket,
   removeFromBasket,
+  getBasket,
 } from '../controllers/phonesController.js'; 
 import {
   phoneIdSchema,
@@ -80,6 +81,12 @@ router.delete(
 );
 
 // Роути кошика
+router.get(
+  '/phones/basket',
+  authenticate,
+  getBasket,
+);
+
 router.post(
   '/phones/:phoneId/basket',
   authenticate,
