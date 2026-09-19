@@ -28,6 +28,7 @@ export const updatePhoneSchema = {
     name: Joi.string().min(3).max(48).trim(),
     description: Joi.string().min(10).max(4000).trim(),
     photo: Joi.string(),
+    price: Joi.number().min(0).integer(),
     author: Joi.string().min(2).max(50),
     storage: Joi.number().valid(...STORAGE),
     battery: Joi.string().valid(...BATTERY),
