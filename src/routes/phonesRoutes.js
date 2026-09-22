@@ -44,16 +44,20 @@ const attachPhonePhotoUrl = async (req, res, next) => {
   }
 };
 
-// 1. Отримання ТІЛЬКИ МОЇХ оголошень (обов'язково ВИЩЕ за /phones/:phoneId)
+// ========================================================
+// 1. СТАТИЧНІ ТА СПЕЦІАЛЬНІ МАРШРУТИ (Обов'язково ВИЩЕ за :phoneId)
+// ========================================================
+
+// Отримання ТІЛЬКИ МОЇХ оголошень
 router.get('/phones/my', authenticate, celebrate(getAllPhonesSchema), getMyPhones);
 
-// 2. Отримання публічного каталогу без оголошень поточного юзера
+// Отримання кошика користувача
+router.get('/phones/basket', authenticate, getBasket);
+
+// Отримання публічного каталогу
 router.get('/phones', optionalAuthenticate, celebrate(getAllPhonesSchema), getAllPhones); 
 
-// 3. Отримання одного оголошення за ID
-router.get('/phones/:phoneId', celebrate(phoneIdSchema), getPhoneById);
-
-// Створення, оновлення та видалення оголошення
+// Створення оголошення
 router.post(
   '/phones',
   authenticate,
@@ -63,6 +67,29 @@ router.post(
   createPhone,
 );
 
+// ========================================================
+// 2. ДИНАМІЧНІ МАРШРУТИ З ПАРАМЕТРОМ :phoneId
+// ========================================================
+
+// Отримання одного оголошення за ID
+router.get('/phones/:phoneId', celebrate(phoneIdSchema), getPhoneById);
+
+// Додавання/Видалення з кошика
+router.post(
+  '/phones/:phoneId/basket',
+  authenticate,
+  celebrate(phoneIdSchema),
+  addToBasket,
+);
+
+router.delete(
+  '/phones/:phoneId/basket',
+  authenticate,
+  celebrate(phoneIdSchema),
+  removeFromBasket,
+);
+
+// Оновлення та видалення оголошення
 router.patch(
   '/phones/:phoneId',
   authenticate,
@@ -78,27 +105,6 @@ router.delete(
   authenticate,
   celebrate(phoneIdSchema),
   deletePhoneById,
-);
-
-// Роути кошика
-router.get(
-  '/phones/basket',
-  authenticate,
-  getBasket,
-);
-
-router.post(
-  '/phones/:phoneId/basket',
-  authenticate,
-  celebrate(phoneIdSchema),
-  addToBasket,
-);
-
-router.delete(
-  '/phones/:phoneId/basket',
-  authenticate,
-  celebrate(phoneIdSchema),
-  removeFromBasket,
 );
 
 export default router;
