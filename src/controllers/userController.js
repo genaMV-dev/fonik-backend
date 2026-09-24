@@ -38,6 +38,18 @@ export const getUsers = async (req, res) => {
   });
 };
 
+export const getCurrentUser = async (req, res) => {
+  const user = await User.findById(req.user._id).select(
+    '_id username email avatar',
+  );
+
+  if (!user) {
+    throw createHttpError(404, 'User not found');
+  }
+
+  res.status(200).json({ user });
+};
+
 export const updateUserAvatar = async (req, res, next) => {
   const { file, user } = req;
   if (!file) {

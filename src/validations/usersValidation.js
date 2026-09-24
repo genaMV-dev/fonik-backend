@@ -1,4 +1,12 @@
 import { Joi, Segments } from 'celebrate';
+import { isValidObjectId } from 'mongoose';
+
+const objectIdValidator = (value, helpers) => {
+  if (!isValidObjectId(value)) {
+    return helpers.message('Invalid ID format');
+  }
+  return value;
+};
 
 export const paginationSchema = {
   [Segments.QUERY]: Joi.object({
@@ -11,4 +19,10 @@ export const updateUserSchema = {
   [Segments.BODY]: Joi.object({
     username: Joi.string().trim().min(2).max(32),
   }).unknown(false),
+};
+
+export const userIdSchema = {
+  [Segments.PARAMS]: Joi.object({
+    id: Joi.string().custom(objectIdValidator).required(),
+  }),
 };
