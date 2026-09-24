@@ -40,7 +40,7 @@ export const getUsers = async (req, res) => {
 
 export const getCurrentUser = async (req, res) => {
   const user = await User.findById(req.user._id).select(
-    '_id username email avatar',
+    '_id username email avatar createdAt',
   );
 
   if (!user) {
@@ -101,7 +101,7 @@ export const updateCurrentUser = async (req, res) => {
   const updatedUser = await User.findByIdAndUpdate(req.user._id, update, {
     new: true,
     runValidators: true,
-  }).select('_id username email avatar');
+  }).select('_id username email avatar createdAt');
 
   if (!updatedUser) {
     throw createHttpError(404, 'User not found');
