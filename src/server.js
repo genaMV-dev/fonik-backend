@@ -2,7 +2,8 @@ import 'dotenv/config';
 import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
 import express from 'express';
-
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger.json' with { type: 'json' };
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { logger } from './middleware/logger.js';
@@ -25,6 +26,8 @@ app.use(
 app.use(express.json());
 app.use(logger);
 app.use(cookieParser());
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(authRoutes);
 app.use(phonesRoutes);
