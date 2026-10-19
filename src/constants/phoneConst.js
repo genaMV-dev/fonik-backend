@@ -1,4 +1,4 @@
-export const STORAGE = [8, 16, 32, 64, 128, 256];
+export const STORAGE = [8, 16, 32, 64, 128, 256, 512, 1000];
 
 export const BATTERY = ['100%', '85%-99%', 'Below 85%'];
 
