@@ -16,6 +16,7 @@ export const registerUser = async (req, res) => {
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
   const user = await User.create({
+    username: req.body.username,
     email: req.body.email,
     password: hashedPassword,
   });
@@ -48,7 +49,6 @@ export const loginUser = async (req, res) => {
   const newSession = await createSession(user._id);
   setSessionCookies(res, newSession);
 
-  
   const userData = user.toObject();
 
   res.status(200).json({
