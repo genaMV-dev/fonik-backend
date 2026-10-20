@@ -1,40 +1,34 @@
 import { Router } from 'express';
 import { celebrate } from 'celebrate';
-import { authenticate } from '../middleware/authenticate.js'; 
+import { authenticate, optionalAuthenticate } from '../middleware/authenticate.js';
 import { upload } from '../middleware/multer.js';
-import { savePhonePhotoToCloudinary } from '../utils/saveFileToCloudinary.js'; 
+import { savePhonePhotoToCloudinary } from '../utils/saveFileToCloudinary.js';
 import {
   createPhone,
   getAllPhones,
-  getMyPhones, 
+  getMyPhones,
   getPhoneById,
   deletePhoneById,
   updatePhone,
   addToBasket,
   removeFromBasket,
   getBasket,
-} from '../controllers/phonesController.js'; 
+} from '../controllers/phonesController.js';
 import {
   phoneIdSchema,
   createPhoneSchema,
   getAllPhonesSchema,
   updatePhoneSchema,
-} from '../validations/phonesValidation.js'; 
+} from '../validations/phonesValidation.js';
 
 const router = Router();
-
-const optionalAuthenticate = (req, res, next) => {
-  authenticate(req, res, (err) => {
-    next();
-  });
-};
 
 const attachPhonePhotoUrl = async (req, res, next) => {
   try {
     if (req.file) {
       const result = await savePhonePhotoToCloudinary(
         req.file.buffer,
-        `${Date.now()}_${req.user._id}`,
+        `${Date.now()}_${req.user._id}`
       );
       req.body.photo = result.secure_url;
     }
@@ -55,7 +49,7 @@ router.get('/phones/my', authenticate, celebrate(getAllPhonesSchema), getMyPhone
 router.get('/phones/basket', authenticate, getBasket);
 
 // Отримання публічного каталогу
-router.get('/phones', optionalAuthenticate, celebrate(getAllPhonesSchema), getAllPhones); 
+router.get('/phones', optionalAuthenticate, celebrate(getAllPhonesSchema), getAllPhones);
 
 // Створення оголошення
 router.post(
@@ -64,7 +58,7 @@ router.post(
   upload.single('photo'),
   attachPhonePhotoUrl,
   celebrate(createPhoneSchema),
-  createPhone,
+  createPhone
 );
 
 // ========================================================
@@ -79,14 +73,14 @@ router.post(
   '/phones/:phoneId/basket',
   authenticate,
   celebrate(phoneIdSchema),
-  addToBasket,
+  addToBasket
 );
 
 router.delete(
   '/phones/:phoneId/basket',
   authenticate,
   celebrate(phoneIdSchema),
-  removeFromBasket,
+  removeFromBasket
 );
 
 // Оновлення та видалення оголошення
@@ -97,14 +91,14 @@ router.patch(
   attachPhonePhotoUrl,
   celebrate(phoneIdSchema),
   celebrate(updatePhoneSchema),
-  updatePhone,
+  updatePhone
 );
 
 router.delete(
   '/phones/:phoneId',
   authenticate,
   celebrate(phoneIdSchema),
-  deletePhoneById,
+  deletePhoneById
 );
 
 export default router;
